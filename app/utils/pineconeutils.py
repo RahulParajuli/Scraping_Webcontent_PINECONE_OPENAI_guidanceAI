@@ -39,8 +39,8 @@ def upsert(data, index):
     data = data.to_dict('records')
 
 
-    model_name = 'text-embeddings-ada-002'
-    embed = OpenAIEmbeddings(model_name=model_name, openai_api_key=OPENAI_APIKEY)
+    model_name = 'text-embedding-ada-002'
+    embed = OpenAIEmbeddings(model=model_name, openai_api_key=OPENAI_APIKEY)
 
     index = pinecone.Index(index)
     batch_size = 1500
@@ -59,7 +59,7 @@ def upsert(data, index):
         ]
         texts.extend(record_texts)
         metadatas.extend(record_metadatas)
-        if len(texts) >= batch_size:
+        if len(texts) <= batch_size:
             ids = [str(uuid4()) for _ in range(len(texts))]
             embeds = embed.embed_documents(texts)
             index.upsert(vectors=zip(ids, embeds, metadatas))
@@ -75,7 +75,7 @@ def dataloader():
     input: None
     output: dataframe
     """
-    data = pd.read_excel("D:/projects/upwork/active/James L langchain model/application/app/utils/data/data.xlsx")
+    data = pd.read_excel("app/utils/data.xlsx")
     data["text_data"] = "Course: " + data["Course"]  + "; HTML:" + data["HTML"]
     data["id"] = [int(i) for i in range (len(data))]
     return data
@@ -135,7 +135,6 @@ if __name__ == "__main__":
             index_name = input("Enter Index Name: ")
             if index_name in check_pinecone_index():
                 print("Index Already Exists")
-                continue
             data = dataloader()
             print("---Data Loaded---")
             print("---Creating Index---")
